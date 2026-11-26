@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="เอกสาร REST API ของ ITGenius Temp Mail สำหรับสร้างกล่องอีเมลและอ่านข้อความ">
+  <title>API · ITGenius Temp Mail</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="/">
+        <span class="brand-icon"><i class="icon i-mail" aria-hidden="true"></i></span>
+        <span><strong>ITGenius</strong> <span class="brand-product">Temp Mail</span></span>
+      </a>
+      <a class="button outlined" href="/"><i class="icon i-arrow-left" aria-hidden="true"></i> กลับไปหน้ากล่องเมล</a>
+    </div>
+  </header>
+  <main class="shell docs">
+    <h1>REST API</h1>
+    <p class="intro">REST API สำหรับสร้างกล่องอีเมลและอ่านข้อความจากโปรแกรมอัตโนมัติ ใช้ base URL
+      <code>https://tm.itgenius.co.th</code> (หรือ <code>https://tm.itgenius.co.th/api</code>) ตอบกลับเป็น JSON-LD (Hydra) โดยค่าเริ่มต้น
+      ส่ง <code>Accept: application/json</code> เพื่อรับเป็นอาร์เรย์ JSON ธรรมดา</p>
+
+    <section class="docs-card">
+      <h2>ขั้นตอนใช้งาน</h2>
+      <ol>
+        <li>ดึงโดเมนที่ใช้ได้จาก <code>GET /domains</code></li>
+        <li>สร้างบัญชีด้วย <code>POST /accounts</code> โดยส่งอีเมลและรหัสผ่าน</li>
+        <li>ขอโทเค็นจาก <code>POST /token</code> แล้วส่งใน header <code>Authorization: Bearer &lt;token&gt;</code></li>
+        <li>อ่านข้อความจาก <code>GET /messages</code> หรือรับแบบเรียลไทม์จาก <code>GET /events</code></li>
+      </ol>
+      <pre dir="ltr"><code>BASE=https://tm.itgenius.co.th
+curl -s $BASE/domains -H 'Accept: application/json'
+curl -s -X POST $BASE/accounts -H 'Content-Type: application/json' \
+  -d '{"address":"demo123@tm.itgenius.co.th","password":"secret-pass"}'
+TOKEN=$(curl -s -X POST $BASE/token -H 'Content-Type: application/json' \
+  -d '{"address":"demo123@tm.itgenius.co.th","password":"secret-pass"}' | jq -r .token)
+curl -s $BASE/messages -H "Authorization: Bearer $TOKEN"</code></pre>
+    </section>
+
+    <section class="docs-card">
+      <h2>Endpoints</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Path</th><th>คำอธิบาย</th><th>Auth</th></tr></thead>
+          <tbody>
+            <tr><td>GET</td><td><code>/domains</code></td><td>รายการโดเมนที่รับอีเมล</td><td>-</td></tr>
+            <tr><td>GET</td><td><code>/domains/{id}</code></td><td>ข้อมูลโดเมน</td><td>-</td></tr>
+            <tr><td>POST</td><td><code>/accounts</code></td><td>สร้างบัญชี <code>{"address","password"}</code> ได้ <code>201</code> หรือ <code>422</code> เมื่อชื่อซ้ำ/ไม่ถูกต้อง</td><td>-</td></tr>
+            <tr><td>POST</td><td><code>/token</code></td><td>เข้าสู่ระบบ ได้ <code>{"id","token"}</code></td><td>-</td></tr>
+            <tr><td>GET</td><td><code>/me</code></td><td>ข้อมูลบัญชีปัจจุบัน (quota, used)</td><td>Bearer</td></tr>
+            <tr><td>GET</td><td><code>/accounts/{id}</code></td><td>ข้อมูลบัญชี</td><td>Bearer</td></tr>
+            <tr><td>PATCH</td><td><code>/accounts/{id}</code></td><td>เปลี่ยนรหัสผ่าน <code>{"currentPassword","password"}</code> ได้ <code>{"id","token"}</code> ใหม่ โทเค็นเดิมทั้งหมดจะใช้ไม่ได้ ได้ <code>401</code> เมื่อรหัสเดิมผิด</td><td>Bearer</td></tr>
+            <tr><td>DELETE</td><td><code>/accounts/{id}</code></td><td>ลบบัญชีและข้อความทั้งหมด ได้ <code>204</code></td><td>Bearer</td></tr>
+            <tr><td>GET</td><td><code>/messages?page=1</code></td><td>รายการข้อความ หน้าละ 30 รายการ เรียงใหม่สุดก่อน</td><td>Bearer</td></tr>
+            <tr><td>GET</td><td><code>/messages/{id}</code></td><td>ข้อความเต็ม (<code>text</code>, <code>html[]</code>, <code>attachments[]</code>)</td><td>Bearer</td></tr>
+            <tr><td>PATCH</td><td><code>/messages/{id}</code></td><td>ตั้งสถานะอ่าน <code>{"seen":true}</code></td><td>Bearer</td></tr>
+            <tr><td>DELETE</td><td><code>/messages/{id}</code></td><td>ลบข้อความ ได้ <code>204</code></td><td>Bearer</td></tr>
+            <tr><td>GET</td><td><code>/messages/{id}/download</code></td><td>ดาวน์โหลดไฟล์ <code>.eml</code></td><td>Bearer</td></tr>
+            <tr><td>GET</td><td><code>/messages/{id}/attachment/{attachmentId}</code></td><td>ดาวน์โหลดไฟล์แนบ</td><td>Bearer</td></tr>
+            <tr><td>GET</td><td><code>/sources/{id}</code></td><td>ต้นฉบับ MIME ของข้อความ (<code>data</code>)</td><td>Bearer</td></tr>
+            <tr><td>GET</td><td><code>/events</code></td><td>Server-Sent Events เมื่อมีข้อความใหม่ (<code>event: message</code>) รองรับ <code>/.well-known/mercure?topic=/accounts/{id}</code> ด้วย</td><td>Bearer</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="docs-card">
+      <h2>ตัวอย่างข้อความ</h2>
+      <pre dir="ltr"><code>{
+  "id": "6740c1f2a9e3b4d5c6e7f801",
+  "accountId": "/accounts/6740c1d0a9e3b4d5c6e7f800",
+  "msgid": "&lt;abc@example.com&gt;",
+  "from": { "address": "noreply@example.com", "name": "Example" },
+  "to": [{ "address": "demo123@tm.itgenius.co.th", "name": "" }],
+  "subject": "Your verification code",
+  "intro": "Your code is 123456",
+  "seen": false,
+  "hasAttachments": false,
+  "size": 2048,
+  "downloadUrl": "/messages/6740c1f2a9e3b4d5c6e7f801/download",
+  "createdAt": "2026-11-19T12:00:00.000Z"
+}</code></pre>
+    </section>
+
+    <section class="docs-card">
+      <h2>ข้อจำกัด</h2>
+      <ul>
+        <li>รับอีเมลอย่างเดียว ไม่รองรับการส่งออก</li>
+        <li>จำกัด 40 คำขอต่อ 5 วินาทีต่อ IP สร้างบัญชีได้ 20 บัญชีต่อ 10 นาทีต่อ IP เกินจะได้ <code>429</code></li>
+        <li>ขนาดอีเมลสูงสุด 10 MiB ต่อฉบับ พื้นที่ 40 MiB ต่อบัญชี</li>
+        <li>ข้อความถูกลบอัตโนมัติหลัง 7 วัน บัญชีที่ไม่ได้ใช้งาน 30 วันจะถูกลบ</li>
+        <li>ชื่อผู้ใช้ 3–64 ตัว ใช้ a-z 0-9 . _ - รหัสผ่าน 6–128 ตัว</li>
+      </ul>
+    </section>
+  </main>
+  <footer class="site-footer shell"><span>© ITGenius Temp Mail</span><a href="/">tm.itgenius.co.th</a></footer>
+</body>
+</html>

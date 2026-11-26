@@ -1,0 +1,34 @@
+[Unit]
+Description=ITGenius Temp Mail (tm.itgenius.co.th)
+After=network.target
+
+[Service]
+Type=simple
+User=tempmail
+Group=tempmail
+WorkingDirectory=/opt/tempmail
+Environment=NODE_ENV=production
+Environment=PUBLIC_ORIGIN=https://tm.itgenius.co.th
+Environment=MAIL_DOMAINS=tm.itgenius.co.th
+Environment=SMTP_NAME=tm.itgenius.co.th
+Environment=HTTP_HOST=127.0.0.1
+Environment=HTTP_PORT=3010
+Environment=SMTP_HOST=127.0.0.1
+Environment=SMTP_PORT=2526
+Environment=DATABASE_PATH=/var/lib/tempmail/tempmail.sqlite
+Environment=TRUST_PROXY=1
+Environment=RATE_REQUESTS_PER_5S=1000
+Environment=RATE_ACCOUNTS_PER_10MIN=200
+Environment=RATE_LOGINS_PER_10MIN=300
+ExecStart=/opt/node24/bin/node server/index.js
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWriteDirectories=/var/lib/tempmail
+MemoryLimit=512M
+
+[Install]
+WantedBy=multi-user.target

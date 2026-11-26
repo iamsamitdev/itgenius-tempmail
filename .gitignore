@@ -1,0 +1,8 @@
+node_modules/
+data/
+*.sqlite
+*.sqlite-*
+secret.key
+.env
+.env.*
+*.log

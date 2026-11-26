@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ITGenius Temp Mail อีเมลชั่วคราวฟรี รับอีเมลทันทีโดยไม่ต้องสมัครสมาชิก พร้อม REST API">
+  <meta name="theme-color" content="#5435bc">
+  <title>ITGenius Temp Mail · อีเมลชั่วคราว</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="/">
+        <span class="brand-icon"><i class="icon i-mail" aria-hidden="true"></i></span>
+        <span><strong>ITGenius</strong> <span class="brand-product">Temp Mail</span></span>
+      </a>
+      <nav class="header-nav">
+        <a class="button ghost hide-sm" href="/docs"><i class="icon i-code" aria-hidden="true"></i> <span data-i18n="api">API</span></a>
+        <button class="button ghost hide-sm" id="help-button" type="button"><i class="icon i-help" aria-hidden="true"></i> <span data-i18n="help">วิธีใช้งาน</span></button>
+        <button class="button ghost lang-button" id="lang-button" type="button" aria-label="Language">EN</button>
+        <button class="button outlined account-button" id="account-button" type="button" popovertarget="account-menu">
+          <span class="avatar" id="account-avatar" aria-hidden="true">?</span>
+          <span class="account-label" data-i18n="accounts">บัญชี</span>
+          <i class="icon i-chevron" aria-hidden="true"></i>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="account-menu" id="account-menu" popover>
+    <p class="menu-title" data-i18n="myAccounts">บัญชีในเบราว์เซอร์นี้</p>
+    <ul class="menu-accounts" id="menu-accounts"></ul>
+    <div class="menu-actions">
+      <button class="menu-item" id="menu-create" type="button"><i class="icon i-user-plus" aria-hidden="true"></i> <span data-i18n="createAccount">สร้างบัญชี</span></button>
+      <button class="menu-item" id="menu-login" type="button"><i class="icon i-login" aria-hidden="true"></i> <span data-i18n="login">เข้าสู่ระบบ</span></button>
+      <button class="menu-item" id="menu-password" type="button"><i class="icon i-key" aria-hidden="true"></i> <span data-i18n="changePassword">เปลี่ยนรหัสผ่าน</span></button>
+      <button class="menu-item" id="menu-logout" type="button"><i class="icon i-logout" aria-hidden="true"></i> <span data-i18n="logout">ออกจากระบบ</span></button>
+      <button class="menu-item danger-text" id="menu-delete" type="button"><i class="icon i-trash" aria-hidden="true"></i> <span data-i18n="deleteAccount">ลบบัญชี</span></button>
+      <a class="menu-item show-sm" href="/docs"><i class="icon i-code" aria-hidden="true"></i> <span data-i18n="api">API</span></a>
+      <button class="menu-item show-sm" id="menu-help" type="button"><i class="icon i-help" aria-hidden="true"></i> <span data-i18n="help">วิธีใช้งาน</span></button>
+    </div>
+  </div>
+
+  <main class="shell workspace">
+    <section class="address-panel" aria-labelledby="page-title">
+      <div class="address-content">
+        <h1 id="page-title" data-i18n="title">อีเมลชั่วคราว</h1>
+        <p class="intro" data-i18n="intro"></p>
+        <label for="address" data-i18n="yourAddress">ที่อยู่อีเมลของคุณ</label>
+        <div class="address-group">
+          <div class="address-field">
+            <i class="icon i-at" aria-hidden="true"></i>
+            <input id="address" type="text" readonly data-i18n-attr="placeholder:preparing" dir="ltr" spellcheck="false">
+          </div>
+          <button class="button primary" id="copy-button" type="button" disabled>
+            <i class="icon i-copy" aria-hidden="true"></i> <span data-i18n="copy">คัดลอก</span>
+          </button>
+        </div>
+        <div class="credentials" id="credentials" hidden>
+          <span class="credential-label"><i class="icon i-key" aria-hidden="true"></i> <span data-i18n="password">รหัสผ่าน</span></span>
+          <code id="password-value" dir="ltr">••••••••••</code>
+          <button class="button subtle small" id="password-toggle" type="button" data-i18n="show">แสดง</button>
+          <button class="button subtle small" id="password-copy" type="button" data-i18n="copy">คัดลอก</button>
+          <span class="credential-hint" data-i18n="passwordHint"></span>
+        </div>
+        <div class="address-actions">
+          <button class="button chip" id="refresh-top" type="button" disabled><i class="icon i-refresh" aria-hidden="true"></i> <span data-i18n="refresh">รีเฟรช</span></button>
+          <button class="button chip" id="random-button" type="button" disabled><i class="icon i-shuffle" aria-hidden="true"></i> <span data-i18n="random">สุ่มอีเมลใหม่</span></button>
+          <button class="button chip" id="custom-button" type="button"><i class="icon i-pencil" aria-hidden="true"></i> <span data-i18n="custom">ตั้งชื่อเอง</span></button>
+          <button class="button chip danger-chip" id="delete-button" type="button" disabled><i class="icon i-trash" aria-hidden="true"></i> <span data-i18n="delete">ลบ</span></button>
+        </div>
+        <div class="usage" id="usage" hidden>
+          <div class="usage-bar"><span id="usage-fill"></span></div>
+          <span id="usage-text"></span>
+        </div>
+      </div>
+      <div class="mail-art" aria-hidden="true">
+        <div class="orbit orbit-outer"></div><div class="orbit orbit-inner"></div>
+        <div class="art-spark spark-top"></div><div class="art-spark spark-bottom"></div>
+        <div class="mail-piece">
+          <div class="envelope-back"></div>
+          <div class="letter"><span class="letter-stamp">@</span><span class="letter-line"></span><span class="letter-line short"></span></div>
+          <div class="envelope-front"></div><div class="envelope-left"></div><div class="envelope-right"></div>
+        </div>
+      </div>
+    </section>
+
+    <p class="notice" id="notice" role="status" aria-live="polite"></p>
+
+    <section class="inbox-panel" id="inbox-panel" aria-labelledby="inbox-title">
+      <div class="inbox-heading">
+        <span class="section-icon"><i class="icon i-inbox" aria-hidden="true"></i></span>
+        <div class="inbox-titles">
+          <h2 id="inbox-title" data-i18n="inbox">กล่องข้อความ</h2>
+          <p id="message-count"></p>
+        </div>
+        <span class="sync-label" id="sync-label" hidden><span></span> <b id="sync-text"></b></span>
+        <button class="button outlined" id="refresh-button" type="button" disabled>
+          <i class="icon i-refresh" aria-hidden="true"></i> <span class="hide-xs" data-i18n="refresh">รีเฟรช</span>
+        </button>
+      </div>
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon"><i class="icon i-mail-open" aria-hidden="true"></i></div>
+        <h3 id="empty-title" data-i18n="loadingTitle"></h3>
+        <p id="empty-text" data-i18n="loadingText"></p>
+      </div>
+      <ul class="message-list" id="message-list" hidden></ul>
+      <div class="load-more" id="load-more" hidden>
+        <button class="button outlined" id="load-more-button" type="button" data-i18n="loadMore">โหลดข้อความเพิ่ม</button>
+      </div>
+    </section>
+
+    <section class="reader" id="reader" hidden aria-labelledby="reader-subject">
+      <div class="reader-toolbar">
+        <button class="button outlined" id="reader-back" type="button"><i class="icon i-arrow-left" aria-hidden="true"></i> <span data-i18n="back">กลับ</span></button>
+        <div class="reader-tools">
+          <button class="button ghost" id="reader-unread" type="button" data-i18n-attr="title:markUnread;aria-label:markUnread"><i class="icon i-mail" aria-hidden="true"></i></button>
+          <a class="button ghost" id="reader-download" data-i18n-attr="title:download;aria-label:download"><i class="icon i-download" aria-hidden="true"></i></a>
+          <button class="button ghost" id="reader-source" type="button" data-i18n-attr="title:source;aria-label:source"><i class="icon i-code" aria-hidden="true"></i></button>
+          <button class="button ghost danger-text" id="reader-delete" type="button" data-i18n-attr="title:deleteMessage;aria-label:deleteMessage"><i class="icon i-trash" aria-hidden="true"></i></button>
+        </div>
+      </div>
+      <div class="reader-head">
+        <span class="avatar large" id="reader-avatar" aria-hidden="true"></span>
+        <div class="reader-head-text">
+          <h2 id="reader-subject" dir="auto"></h2>
+          <p class="reader-meta"><span data-i18n="from">จาก</span> <b id="reader-from" dir="auto"></b></p>
+          <p class="reader-meta"><span data-i18n="to">ถึง</span> <span id="reader-to" dir="auto"></span></p>
+        </div>
+        <time class="reader-time" id="reader-time"></time>
+      </div>
+      <div class="reader-tabs" id="reader-tabs" role="tablist" hidden>
+        <button class="tab" id="tab-html" type="button" role="tab" aria-selected="true" data-i18n="htmlTab">HTML</button>
+        <button class="tab" id="tab-text" type="button" role="tab" aria-selected="false" data-i18n="textTab">ข้อความ</button>
+        <div class="images-bar" id="images-bar">
+          <span data-i18n="imagesBlocked"></span>
+          <button class="button subtle small" id="show-images" type="button" data-i18n="showImages"></button>
+        </div>
+      </div>
+      <iframe class="reader-frame" id="reader-frame" title="Email" sandbox="allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer" hidden></iframe>
+      <div class="reader-text" id="reader-text" dir="auto"></div>
+      <div class="reader-attachments" id="reader-attachments" hidden>
+        <h3><i class="icon i-paperclip" aria-hidden="true"></i> <span data-i18n="attachments">ไฟล์แนบ</span></h3>
+        <ul id="attachment-list"></ul>
+      </div>
+    </section>
+
+    <section class="info-grid" aria-labelledby="faq-title">
+      <div class="info-card">
+        <h2 data-i18n="helpTitle">วิธีใช้งาน</h2>
+        <ol class="help-steps">
+          <li data-i18n="help1"></li><li data-i18n="help2"></li><li data-i18n="help3"></li><li data-i18n="help4"></li>
+        </ol>
+      </div>
+      <div class="info-card">
+        <h2 id="faq-title" data-i18n="faqTitle">คำถามที่พบบ่อย</h2>
+        <details><summary data-i18n="faq1q"></summary><p id="faq1a"></p></details>
+        <details><summary data-i18n="faq2q"></summary><p data-i18n="faq2a"></p></details>
+        <details><summary data-i18n="faq3q"></summary><p data-i18n="faq3a"></p></details>
+        <details><summary data-i18n="faq4q"></summary><p><span data-i18n="faq4a"></span> <a href="/docs">/docs</a></p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer shell">
+    <span>© ITGenius Temp Mail</span>
+    <span><i class="icon i-shield" aria-hidden="true"></i> <span data-i18n="footer"></span></span>
+  </footer>
+
+  <dialog id="help-dialog" aria-labelledby="help-title">
+    <div class="dialog-heading">
+      <h2 id="help-title" data-i18n="helpTitle">วิธีใช้งาน</h2>
+      <form method="dialog"><button class="button icon-button" data-i18n-attr="aria-label:close"><i class="icon i-x" aria-hidden="true"></i></button></form>
+    </div>
+    <ol class="help-steps">
+      <li data-i18n="help1"></li><li data-i18n="help2"></li><li data-i18n="help3"></li><li data-i18n="help4"></li>
+    </ol>
+  </dialog>
+
+  <dialog id="create-dialog" aria-labelledby="create-title">
+    <form id="create-form" class="stack-form">
+      <div class="dialog-heading">
+        <h2 id="create-title" data-i18n="createAccount">สร้างบัญชี</h2>
+        <button class="button icon-button" type="button" data-close data-i18n-attr="aria-label:close"><i class="icon i-x" aria-hidden="true"></i></button>
+      </div>
+      <label for="create-username" data-i18n="address">อีเมล</label>
+      <div class="split-field" dir="ltr">
+        <input id="create-username" name="username" autocomplete="off" autocapitalize="none" spellcheck="false" required minlength="3" maxlength="64" pattern="[A-Za-z0-9](?:[A-Za-z0-9._\-]{1,62}[A-Za-z0-9])">
+        <span class="at">@</span>
+        <select id="create-domain" name="domain" data-i18n-attr="aria-label:domain"></select>
+      </div>
+      <p class="field-hint" data-i18n="usernameHint"></p>
+      <label for="create-password" data-i18n="password">รหัสผ่าน</label>
+      <div class="split-field" dir="ltr">
+        <input id="create-password" name="password" type="text" autocomplete="new-password" required minlength="6" maxlength="128" spellcheck="false">
+        <button class="button subtle small" id="generate-password" type="button" data-i18n="generate">สุ่มรหัส</button>
+      </div>
+      <p class="field-hint" data-i18n="passwordRule"></p>
+      <p class="form-error" id="create-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button class="button outlined" type="button" data-close data-i18n="cancel">ยกเลิก</button>
+        <button class="button primary" type="submit" data-i18n="create">สร้างบัญชี</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="login-dialog" aria-labelledby="login-title">
+    <form id="login-form" class="stack-form">
+      <div class="dialog-heading">
+        <h2 id="login-title" data-i18n="login">เข้าสู่ระบบ</h2>
+        <button class="button icon-button" type="button" data-close data-i18n-attr="aria-label:close"><i class="icon i-x" aria-hidden="true"></i></button>
+      </div>
+      <p class="dialog-text" data-i18n="loginText"></p>
+      <label for="login-address" data-i18n="address">อีเมล</label>
+      <input class="text-input" id="login-address" name="address" type="email" autocomplete="username" dir="ltr" required>
+      <label for="login-password" data-i18n="password">รหัสผ่าน</label>
+      <div class="split-field" dir="ltr">
+        <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+        <button class="button subtle small" type="button" data-toggle-password="login-password" aria-pressed="false" data-i18n="show">แสดง</button>
+      </div>
+      <p class="form-error" id="login-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button class="button outlined" type="button" data-close data-i18n="cancel">ยกเลิก</button>
+        <button class="button primary" type="submit" data-i18n="login">เข้าสู่ระบบ</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="password-dialog" aria-labelledby="password-title">
+    <form id="password-form" class="stack-form">
+      <div class="dialog-heading">
+        <h2 id="password-title" data-i18n="changePassword">เปลี่ยนรหัสผ่าน</h2>
+        <button class="button icon-button" type="button" data-close data-i18n-attr="aria-label:close"><i class="icon i-x" aria-hidden="true"></i></button>
+      </div>
+      <p class="dialog-text" id="password-account" dir="ltr"></p>
+      <input type="text" name="username" id="password-username" autocomplete="username" hidden>
+      <label for="password-current" data-i18n="currentPassword">รหัสผ่านปัจจุบัน</label>
+      <div class="split-field" dir="ltr">
+        <input id="password-current" name="currentPassword" type="password" autocomplete="current-password" required maxlength="128">
+        <button class="button subtle small" type="button" data-toggle-password="password-current" aria-pressed="false" data-i18n="show">แสดง</button>
+      </div>
+      <label for="password-new" data-i18n="newPassword">รหัสผ่านใหม่</label>
+      <div class="split-field" dir="ltr">
+        <input id="password-new" name="password" type="text" autocomplete="new-password" required minlength="6" maxlength="128" spellcheck="false">
+        <button class="button subtle small" id="password-generate" type="button" data-i18n="generate">สุ่มรหัส</button>
+      </div>
+      <p class="field-hint" data-i18n="passwordRule"></p>
+      <label for="password-confirm" data-i18n="confirmPassword">ยืนยันรหัสผ่านใหม่</label>
+      <input class="text-input" id="password-confirm" name="confirm" type="text" autocomplete="new-password" dir="ltr" required maxlength="128" spellcheck="false">
+      <p class="field-hint warn-hint" data-i18n="passwordWarning"></p>
+      <p class="form-error" id="password-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button class="button outlined" type="button" data-close data-i18n="cancel">ยกเลิก</button>
+        <button class="button primary" type="submit" data-i18n="savePassword">บันทึกรหัสผ่าน</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+    <h2 id="confirm-title"></h2>
+    <p id="confirm-text" class="dialog-text"></p>
+    <form method="dialog" class="dialog-actions">
+      <button class="button outlined" value="cancel" autofocus data-i18n="cancel">ยกเลิก</button>
+      <button class="button danger" id="confirm-action" value="confirm"></button>
+    </form>
+  </dialog>
+
+  <dialog class="source-dialog" id="source-dialog" aria-labelledby="source-title">
+    <div class="dialog-heading">
+      <h2 id="source-title" data-i18n="sourceTitle">ต้นฉบับข้อความ</h2>
+      <form method="dialog"><button class="button icon-button" data-i18n-attr="aria-label:close"><i class="icon i-x" aria-hidden="true"></i></button></form>
+    </div>
+    <pre class="source-view" id="source-view" dir="ltr"></pre>
+    <div class="dialog-actions">
+      <button class="button outlined" id="source-copy" type="button"><i class="icon i-copy" aria-hidden="true"></i> <span data-i18n="copySource"></span></button>
+      <a class="button primary" id="source-download"><i class="icon i-download" aria-hidden="true"></i> <span data-i18n="download"></span></a>
+    </div>
+  </dialog>
+  <noscript><p class="shell">เปิด JavaScript เพื่อใช้งานอีเมลชั่วคราว / Enable JavaScript to use Temp Mail.</p></noscript>
+</body>
+</html>
